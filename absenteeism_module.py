@@ -11,8 +11,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
-#  custom scalar class
-class CustomScalar(BaseEstimator, TransformerMixin):
+#  custom scaler class
+class CustomScaler(BaseEstimator, TransformerMixin):
     
     def __init__(self, columns, copy=True, with_mean=True, with_std=True):
         self.scaler = StandardScaler(copy, with_mean, with_std)
@@ -36,11 +36,11 @@ class CustomScalar(BaseEstimator, TransformerMixin):
 # prediction class
 class absenteeism_model():
     
-    def __init__(self, model, scalar):      
-        # load saved model and scalar
-        with open('absenteeism_model','rb') as model, open('custom_scalar','rb') as scaler:
+    def __init__(self, model, scaler):      
+        # load saved model and scaler
+        with open('absenteeism_model','rb') as model, open('custom_scaler','rb') as scaler:
             self.reg = pickle.load(model)
-            self.scalar = pickle.load(scalar)
+            self.scaler = pickle.load(scaler)
             self.data = None
             
     # load and preprocess data
@@ -70,14 +70,14 @@ class absenteeism_model():
         df = pd.concat([df,reason_type_1, reason_type_2, reason_type_3, reason_type_4], axis=1)
         
         # rename and reorder columns
-        column_names = ['Reason for Absence', 'Date', 'Transportation Expense',
+        column_names = ['Date', 'Transportation Expense',
                'Distance to Work', 'Age', 'Daily Work Load Average',
                'Body Mass Index', 'Education', 'Children', 'Pets',
                'Absenteeism Time in Hours', 'Reason_1', 'Reason_2', 'Reason_3', 'Reason_4']
 
         df.columns = column_names
 
-        cols_reordered = ['Reason_1', 'Reason_2', 'Reason_3', 'Reason_4', 'Reason for Absence', 'Date', 'Transportation Expense',
+        cols_reordered = ['Reason_1', 'Reason_2', 'Reason_3', 'Reason_4', 'Date', 'Transportation Expense',
                'Distance to Work', 'Age', 'Daily Work Load Average',
                'Body Mass Index', 'Education', 'Children', 'Pets',
                'Absenteeism Time in Hours']
@@ -115,7 +115,7 @@ class absenteeism_model():
         # create preprocessed data attribute
         self.preprocessed_data = df.copy()
         
-        self.data = self.scalar.transform(df)
+        self.data = self.scaler.transform(df)
     
     # function for predicting probability of outcome as 1
     def predicted_probability(self):
@@ -131,7 +131,7 @@ class absenteeism_model():
         
     # predict outputs and probability and add to data as columns
     def predicted_outputs(self):
-        is (self.data is not None):
+        if (self.data is not None):
             self.preprocessed_data['Probability'] = self.reg.predict_proba(self.data)[:,1]
             self.preprocessed_data['Prediction'] = self.reg.predict(self.data)
             return self.preprocessed_data
